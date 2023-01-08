@@ -1,3 +1,4 @@
+using Test_WebAPI.Configuration;
 using Test_WebAPI.LogLoader;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,9 +10,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
-//TODO вывести название в конфиг
-builder.Services.AddSingleton<ILogFileLoader>(_ => new LogJsonFileLoader("data.json"));
 
+builder.Services.Configure<LogFilePathOption>(
+    builder.Configuration.GetSection(LogFilePathOption.Position));
+    
+builder.Services.AddSingleton<LogJsonFileLoader>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

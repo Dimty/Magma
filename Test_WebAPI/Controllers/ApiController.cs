@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Test_Practice_CSharp.DTO;
@@ -14,17 +9,18 @@ using Test_WebAPI.ObjectsForJsonConversion;
 
 namespace Test_WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class ApiController : ControllerBase
     {
         private readonly ILogger<ApiController> _logger;
-        private readonly ILogFileLoader _fileLog;
+        //По-хорошему, конечно, лучше через интерфейс, но в этот раз решил ограничиться таким способом.
+        private readonly LogJsonFileLoader _fileLog;
         private readonly IMapper _mapper;
 
 
         public ApiController(ILogger<ApiController> logger,
-            ILogFileLoader fileLog,
+            LogJsonFileLoader fileLog,
             IMapper mapper)
         {
             _logger = logger;
@@ -32,12 +28,16 @@ namespace Test_WebAPI.Controllers
             _mapper = mapper;
         }
 
+        /// <returns>Все данные прочитанные из файла.</returns>
         [HttpGet("allData")]
         public IActionResult GetAllData() => Ok(_fileLog.LogData);
 
+        /// <returns>Содержание объекта <see cref="ObjectsForJsonConversion.Scan"/>.</returns>
         [HttpGet("scan")]
         public IActionResult GetScan() => Ok(_fileLog.LogData.Scan);
 
+        /// <param name="correct">Значение результата сканирования.</param>
+        /// <returns>В зависимости от значения параметра выдает список файлов со схожим значением результата сканирования.</returns>
         [HttpGet("filename")]
         public IActionResult GetFileNameCorrect([FromQuery] bool? correct)
         {
@@ -48,6 +48,7 @@ namespace Test_WebAPI.Controllers
             return Ok(list);
         }
 
+        /// <returns>Список файлов с выявленными ошибками во время сканирования.</returns>
         [HttpGet("errors")]
         public IActionResult GetAllError()
         {
@@ -57,9 +58,12 @@ namespace Test_WebAPI.Controllers
             return Ok(res);
         }
 
+        /// <returns>Количество файлов с ошибками.</returns>
         [HttpGet("errors/count")]
         public IActionResult GetErrorCount() => Ok(_fileLog.LogData.Scan.ErrorCount);
 
+        /// <param name="index">Индекс интересующего файла с ошибкой.</param>
+        /// <returns>Файл с ошибкой по индексу.</returns>
         [HttpGet("errors/{index:int}")]
         public IActionResult GetErrorByIndex(int index)
         {
@@ -73,6 +77,7 @@ namespace Test_WebAPI.Controllers
             return Ok(res);
         }
 
+        /// <returns>Наименование сборки, номер версии и время на сервере.</returns>
         [HttpGet("ServiceInfo")]
         //TODO serviceinfodto
         public IActionResult GetServiceInfo() => new JsonResult(new ServiceInfoDto());
@@ -95,7 +100,11 @@ namespace Test_WebAPI.Controllers
             return Ok(dto);
         }
 
-
+        /// <summary>
+        /// Десериализует полученные данные и в случае успехи записывает их в созданный файл в формате ".json".
+        /// </summary>
+        /// <param name="data">Данные для десериализации.</param>
+        /// <returns>Код статуса выполнения операции.</returns>
         [HttpPost("newErrors")]
         public async Task<IActionResult> PostNewError([FromBody] LogJsonData data)
         {
@@ -106,8 +115,8 @@ namespace Test_WebAPI.Controllers
 
             try
             {
-                var des = Newtonsoft.Json.JsonConvert.SerializeObject(data,Formatting.Indented);
-                //TODO
+                var des = Newtonsoft.Json.JsonConvert.SerializeObject(data, Formatting.Indented);
+                //TODO мб стоит убрать регулярку(или изменить -_-)
                 var fileName = Regex.Replace(data.Scan.ScanTime.ToString(CultureInfo.InvariantCulture), "[/\\|:.]", "-")
                     .Replace(' ', '_') + ".json";
 

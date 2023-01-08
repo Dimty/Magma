@@ -3,6 +3,9 @@ using Test_Practice_CSharp.DTO;
 
 namespace Test_WebAPI.Mapper
 {
+    /// <summary>
+    /// Маппер
+    /// </summary>
     public class AutoMapperProfile : Profile
     {
         public AutoMapperProfile()

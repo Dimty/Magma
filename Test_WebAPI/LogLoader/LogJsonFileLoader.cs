@@ -1,21 +1,36 @@
-﻿namespace Test_WebAPI.LogLoader
+﻿using Microsoft.CodeAnalysis.Options;
+using Microsoft.Extensions.Options;
+using Test_WebAPI.Configuration;
+
+namespace Test_WebAPI.LogLoader
 {
-    public class LogJsonFileLoader:ILogFileLoader
+    /// <summary>
+    /// Загружает файл с логами.
+    /// </summary>
+    public class LogJsonFileLoader
     {
+        /// <summary>
+        /// Хранит путь до файла с логами.
+        /// </summary>
+        private readonly LogFilePathOption _option;
+        /// <summary>
+        /// Объект содержащий десериализованные данные из файла.
+        /// </summary>
         public ObjectsForJsonConversion.LogJsonData LogData { get; set; }
 
-        public LogJsonFileLoader(string path)
+        public LogJsonFileLoader(IOptions<LogFilePathOption> options)
         {
-            if (!File.Exists(path))
+            _option = options.Value ?? throw new NullReferenceException();
+
+            if (!File.Exists(_option.Path))
             {
                 LogData = new();
             }
             else
             {
-                var json = File.ReadAllText(path);
-                LogData = Newtonsoft.Json.JsonConvert.DeserializeObject<ObjectsForJsonConversion.LogJsonData>(json) ?? new();
+                var json = File.ReadAllText(_option.Path);
+                LogData = Newtonsoft.Json.JsonConvert.DeserializeObject<ObjectsForJsonConversion.LogJsonData>(json);
             }
-            
         }
     }
 }
