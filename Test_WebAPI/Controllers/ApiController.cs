@@ -41,7 +41,7 @@ namespace Test_WebAPI.Controllers
         [HttpGet("filename")]
         public IActionResult GetFileNameCorrect([FromQuery] bool? correct)
         {
-            if (correct is null)
+            if (correct == null)
                 return BadRequest(correct);
 
             var list = _fileLog.LogData.Files.Where(x => x.Result == correct);
@@ -89,7 +89,7 @@ namespace Test_WebAPI.Controllers
                 .Where(x => x.FileName.ToLower().StartsWith("query_")).ToArray();
 
             int correctRes = list.Count(x => x.Result);
-
+            //можно через маппер
             QueryDto dto = new()
             {
                 Total = list.Length,

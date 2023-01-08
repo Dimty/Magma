@@ -20,17 +20,24 @@ namespace Test_WebAPI.LogLoader
 
         public LogJsonFileLoader(IOptions<LogFilePathOption> options)
         {
-            _option = options.Value ?? throw new NullReferenceException();
+            _option = options.Value;
 
-            if (!File.Exists(_option.Path))
+            try
             {
-                LogData = new();
-            }
-            else
-            {
+                if (!File.Exists(_option.Path))
+                {
+                    throw new FileNotFoundException();
+                }
+                
                 var json = File.ReadAllText(_option.Path);
                 LogData = Newtonsoft.Json.JsonConvert.DeserializeObject<ObjectsForJsonConversion.LogJsonData>(json);
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+                
         }
     }
 }
